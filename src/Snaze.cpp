@@ -8,7 +8,7 @@ int main(int argc, char *argv[])
 
     if (argc < 2)
     {
-        fprintf(stderr, "[ E ]: Forneca o caminho completo do arquivo por meio do parametro. \n");
+        cout << "[ E ]: Forneca o caminho completo do arquivo por meio do parametro." << endl;
         exit(EXIT_FAILURE);
     }
 
@@ -16,13 +16,12 @@ int main(int argc, char *argv[])
 
     if (arquivo == NULL)
     {
-        fprintf(stderr, "[ E ]: Arquivo nao encontrado. \n");
+        cout << "[ E ]: FArquivo nao encontrado." << endl;
         exit(EXIT_FAILURE);
     }
 
     fclose(arquivo);
-    printf("[I]: Sucesso. \n");
-    return EXIT_SUCCESS;
+
     SnakeGame game;
 
     game.loop(); //bloqueia aqui e só saí quando o jogo termina
