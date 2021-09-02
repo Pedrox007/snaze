@@ -9,6 +9,6 @@ include_directories( include )
 # Cria um executável com nome "snaze"
 add_executable( snaze
                 src/Snaze.cpp
-                src/SnazeGame.cpp)
+                src/SnakeGame.cpp)
 
 # The end
