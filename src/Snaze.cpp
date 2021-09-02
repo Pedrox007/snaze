@@ -16,11 +16,13 @@ int main(int argc, char *argv[])
 
     if (arquivo == NULL)
     {
-        cout << "[ E ]: FArquivo nao encontrado." << endl;
+        cout << "[ E ]: Arquivo nao encontrado." << endl;
         exit(EXIT_FAILURE);
     }
 
     fclose(arquivo);
+    cout << "[ I ]: Sucesso." << endl;
+    return EXIT_SUCCESS;
 
     SnakeGame game;
 
