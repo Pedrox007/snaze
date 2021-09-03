@@ -22,9 +22,8 @@ int main(int argc, char *argv[])
 
     fclose(arquivo);
     cout << "[ I ]: Sucesso." << endl;
-    return EXIT_SUCCESS;
 
-    SnakeGame game;
+    SnakeGame game(argv[1]);
 
     game.loop(); //bloqueia aqui e só saí quando o jogo termina
 

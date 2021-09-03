@@ -8,17 +8,17 @@
 
 using namespace std;
 
-SnakeGame::SnakeGame()
+SnakeGame::SnakeGame(string filePath)
 {
     choice = "";
     frameCount = 0;
-    initialize_game();
+    initialize_game(filePath);
 }
 
-void SnakeGame::initialize_game()
+void SnakeGame::initialize_game(string filePath)
 {
     //carrega o nivel ou os níveis
-    ifstream levelFile("data/maze1.txt"); //só dá certo se o jogo for executado dentro da raíz do diretório (vc vai resolver esse problema pegando o arquivo da linha de comando)
+    ifstream levelFile(filePath); //só dá certo se o jogo for executado dentro da raíz do diretório (vc vai resolver esse problema pegando o arquivo da linha de comando)
     int lineCount = 0;
     string line;
     if (levelFile.is_open())
