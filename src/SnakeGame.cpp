@@ -1,7 +1,9 @@
-#include "../include/SnakeGame.h"
+#include "SnakeGame.h"
 
 #include <iostream>
 #include <fstream>
+#include <sstream>
+#include <ctype.h>
 
 #include <chrono> //por causa do sleep
 #include <thread> //por causa do sleep
@@ -12,26 +14,50 @@ SnakeGame::SnakeGame(string filePath)
 {
     choice = "";
     frameCount = 0;
+    current_map = 0;
     initialize_game(filePath);
 }
 
 void SnakeGame::initialize_game(string filePath)
 {
-    //carrega o nivel ou os níveis
-    ifstream levelFile(filePath); //só dá certo se o jogo for executado dentro da raíz do diretório (vc vai resolver esse problema pegando o arquivo da linha de comando)
-    int lineCount = 0;
+    //carrega as variáveis auxiliares para a inicialização do jogo
+    ifstream levelFile(filePath);
+    int linesCount, colsCount, fruits;
     string line;
+    vector<string> map;
     if (levelFile.is_open())
     {
         while (getline(levelFile, line))
-        { //pega cada linha do arquivo
-            if (lineCount > 0)
-            { //ignora a primeira linha já que ela contem informações que não são uteis para esse exemplo
-                maze.push_back(line);
+        {
+            //Se o primeiro digito da linha seja um número, é pra ser carregado um novo mapa e salva o anterior
+            if (isdigit(line[0]))
+            {
+                //Caso o vector com as linhas do mapa não esteja vazio
+                if (map.size() > 0) {
+                    //Adiciona um novo objeto LEvel com o mapa em maps
+                    maps.push_back(Level(linesCount, colsCount, map, fruits));
+                }
+
+                istringstream line_stream(line);
+
+                //Salva os valores do arquivo com relação ao mapa
+                line_stream >> linesCount >> colsCount >> fruits;
+                map.clear();
+
+                continue;
             }
-            lineCount++;
+            //Adiciona a string da linha ao vetor do mapa
+            map.push_back(line);
         }
     }
+
+    //Caso ao final não seja carrgado nenhuma linha do mapa, é retornado um erro
+    if (map.size() == 0) {
+        cout << "[ E ]: Erro ao ler mapas do arquivo." << endl;
+        exit(EXIT_FAILURE);
+    }
+    maps.push_back(Level(linesCount, colsCount, map, fruits));//Adiciona o último mapa do arquivo a lista de mapas
+
     state = RUNNING;
 }
 
@@ -106,13 +132,36 @@ void clearScreen()
 void SnakeGame::render()
 {
     clearScreen();
+    //Iniciar as variaveis contendo mapa e posição da fruta
+    pair<int, int> fruit_pos = maps[current_map].get_current_fruit();
+    vector<vector<char>> map = maps[current_map].get_map();
+    char el;
     switch (state)
     {
     case RUNNING:
-        //desenha todas as linhas do labirinto
-        for (auto line : maze)
+        //Lendo linhas do mapa
+        for (int lines_i = 0; lines_i < map.size(); lines_i++)
         {
-            cout << line << endl;
+            //Lendo colunas do mapa
+            for (int cols_i = 0; cols_i < map[lines_i].size(); cols_i++) {
+                el = map[lines_i][cols_i];
+                //Caso o elemento do mapa seja a posição inicial da cobra, é pra printar o espaço vazio
+                if (el == '*') {
+                    cout << " ";
+                    continue;
+                }
+
+                //Caso seja a posição da fruta, é para printa-la
+                if (lines_i == fruit_pos.first && cols_i == fruit_pos.second) {
+                    cout << "@";
+                    continue;
+                }
+
+                //Printa o elemento do mapa
+                cout << el;
+            }
+            //Pula a linha
+            cout << endl;
         }
         break;
     case WAITING_USER:
