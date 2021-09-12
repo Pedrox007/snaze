@@ -5,6 +5,7 @@
 
 #include "Level.h"
 #include "Utils.h"
+#include "Snake.h"
 
 using namespace std;
 
@@ -12,11 +13,14 @@ class SnakeGame
 {
 private:
     //<! atributos adicione outros se quiser
-    vector<Level> maps;       //<! vector contendo os mapas
-    int current_map;               //<! usado para especificar qual é o mapa mostrado
-    int frameCount;                //<! contador de frames, usado apenas como exemplo
-    string choice;            //<! usado na função process_actions para guardar a escolha do usuário
-    GameStates state;              //<! guarda o estado do jogo
+    vector<Level> maps;                 //<! vector contendo os mapas
+    int current_map;                    //<! usado para especificar qual é o mapa mostrado
+    string choice;                      //<! usado na função process_actions para guardar a escolha do usuário
+    GameStates state;                   //<! guarda o estado do jogo
+    vector<pair<int, int>> solution;    //<! vector com a solução do mapa
+    int current_sol_pos_index;          //<! inteiro indicando a posição da soluçao
+    bool has_solution;                  //<! booleano indicando se existe solução
+    Snake snake;                        //<! Objeto Snake que contem a posição e a orientação da cobra
 
 public:
     /**

@@ -99,3 +99,25 @@ LevelObjects Level::get_map_object(pair<int, int> pos) {
 pair<int, int> Level::get_current_fruit() {
     return fruits[current_fruit]; //Retorna a posição da fruta atual
 }
+
+//Método para retornar posição inicial da cobra no mapa
+pair<int, int> Level::get_snake_initial_pos() {
+    //Inicializa um pair auxiliar para armazenar a posição
+    pair<int, int> pos;
+
+    //Loop sob o mapa
+    for (int i = 0; i < dimensions.first; i++) {
+        for (int j = 0; j < dimensions.second; j++) {
+            //Define a posição com os indicies do loop
+            pos.first = i;
+            pos.second = j;
+
+            //Caso seja a poisção inicial da cobra, é retornado essa posição
+            if (get_map_object(pos) == SNAKE_INITIAL_POSITION) return pos;
+        }
+    }
+
+    //Retorna um erro caso a posição não seja encontrada
+    cout << "[ E ]: Erro ao ler posição inicial da cobra." << endl;
+    exit(EXIT_FAILURE);
+}

@@ -2,8 +2,8 @@
 #define Level_h
 #include <iostream>
 #include <vector>
-#include "Utils.h"
 #include <algorithm>
+#include "Utils.h"
 
 using namespace std;
 
@@ -18,6 +18,8 @@ public:
     vector<vector<char>> get_map(); //Método para retornar o mapa
 
     pair<int, int> get_current_fruit(); //Método para retornar a posição da fruta atual
+
+    pair<int, int> get_snake_initial_pos(); //Método para retornar posição inicial da cobra no mapa
 
     LevelObjects get_map_object(pair<int, int> pos); //Método para retornar qual tipo de objeto está em uma posição passada
 

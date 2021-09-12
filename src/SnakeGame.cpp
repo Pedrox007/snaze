@@ -13,7 +13,6 @@ using namespace std;
 SnakeGame::SnakeGame(string filePath)
 {
     choice = "";
-    frameCount = 0;
     current_map = 0;
     initialize_game(filePath);
 }
@@ -56,13 +55,16 @@ void SnakeGame::initialize_game(string filePath)
         cout << "[ E ]: Erro ao ler mapas do arquivo." << endl;
         exit(EXIT_FAILURE);
     }
-    maps.push_back(Level(linesCount, colsCount, map, fruits));//Adiciona o último mapa do arquivo a lista de mapas
+    maps.push_back(Level(linesCount, colsCount, map, fruits)); //Adiciona o último mapa do arquivo a lista de mapas
 
-    state = RUNNING;
+    snake.set_snake_pos(maps[current_map].get_snake_initial_pos(), NORTH); //Seta a posição inicial da cobra com o valor passado pelo Level
+
+    state = WAITING_SOLUTION; //Seta state para WAITING_SOLUTION para procurar a solução para a primeira fruta
 }
 
 void SnakeGame::process_actions()
 {
+    vector<pair<int, int>> sol;
     //processa as entradas do jogador de acordo com o estado do jogo
     //nesse exemplo o jogo tem 3 estados, WAITING_USER, RUNNING e GAME_OVER.
     //no caso deste trabalho temos 2 tipos de entrada, uma que vem da classe Player, como resultado do processamento da IA
@@ -71,6 +73,10 @@ void SnakeGame::process_actions()
     {
     case WAITING_USER: //o jogo bloqueia aqui esperando o usuário digitar a escolha dele
         cin >> std::ws >> choice;
+        break;
+    case WAITING_SOLUTION: //o jogo bloqueia aqui esperando a solução ser gerada
+        //Chama a função que faz o backtracking para procurar uma solução
+        has_solution = solveMap(maps[current_map].get_map(), snake.get_pos(), snake.get_orient(), sol, solution, maps[current_map].get_current_fruit());        
         break;
     default:
         //nada pra fazer aqui
@@ -84,10 +90,31 @@ void SnakeGame::update()
     switch (state)
     {
     case RUNNING:
-        if (frameCount > 0 && frameCount % 10 == 0) //depois de 10 frames o jogo pergunta se o usuário quer continuar
-            state = WAITING_USER;
+        current_sol_pos_index++; //Incrementa o index de posições da solução
+
+        //Caso o index de posições da solução passe do tamanho do vetor
+        if (current_sol_pos_index >= solution.size()) {
+            //Caso haja frutas no mapa
+            if (maps[current_map].pass_fruit()) {
+                state = WAITING_SOLUTION; //Seta state para WAITING_SOLUTION afim de procurar solução para a nova fruta do mapa  
+            } else {
+                current_map++; //Passa para o próximo mapa caso não haja mais frutas
+
+                //Caso não exista mais mapas
+                if (current_map >= maps.size()) {
+                    //Finaliza o jogo e o programa
+                    state = GAME_OVER;
+                    game_over();
+                } else {
+                    state = WAITING_USER; //Seta o state para WAITING_USER caso haja mais mapas para ele decidir se continua
+                }
+            }
+        } else {
+            snake.update_snake_pos(solution[current_sol_pos_index]); //Caso ainda haja posições a ser feitas da solução, a posição da cobra é atualizada com a posição da solução
+        }
         break;
     case WAITING_USER: //se o jogo estava esperando pelo usuário então ele testa qual a escolha que foi feita
+        //Caso a escolha seja finalizar o jogo, assim é feito, o jogo termina
         if (choice == "n")
         {
             state = GAME_OVER;
@@ -95,10 +122,32 @@ void SnakeGame::update()
         }
         else
         {
-            //pode fazer alguma coisa antes de fazer isso aqui
-            state = RUNNING;
+            snake.set_snake_pos(maps[current_map].get_snake_initial_pos(), NORTH); //Caso seja continuar, é reiniciado a posição e a direção da cobra para o novo mapa
+            state = WAITING_SOLUTION; //Seta o state para WAITING_SOLUTION para procurar uma nova solução
         }
         break;
+    case WAITING_SOLUTION:
+        //Caso não haja solução
+        if (!has_solution) {
+            //Caso haja frutas no mapa
+            if (maps[current_map].pass_fruit()) {
+                state = WAITING_SOLUTION; //Seta state para WAITING_SOLUTION afim de procurar solução para a nova fruta do mapa                
+            } else {
+                current_map++; //Passa para o próximo mapa caso não haja mais frutas
+
+                //Caso não exista mais mapas
+                if (current_map >= maps.size()) {
+                    //Finaliza o jogo e o programa
+                    state = GAME_OVER;
+                    game_over();
+                } else {
+                    state = WAITING_USER; //Seta o state para WAITING_USER caso haja mais mapas para ele decidir se continua
+                }
+            }
+        } else {
+            current_sol_pos_index = 0; //Seta o atributo que define o index de posição da solução
+            state = RUNNING;
+        }
     default:
         //nada pra fazer aqui
         break;
@@ -132,12 +181,14 @@ void clearScreen()
 void SnakeGame::render()
 {
     clearScreen();
-    //Iniciar as variaveis contendo mapa e posição da fruta
+    //Iniciar as variaveis contendo mapa, posição da fruta, posição da cobra
     pair<int, int> fruit_pos = maps[current_map].get_current_fruit();
+    pair<int, int> snake_pos = snake.get_pos();
     vector<vector<char>> map = maps[current_map].get_map();
     char el;
     switch (state)
     {
+    case WAITING_SOLUTION:
     case RUNNING:
         //Lendo linhas do mapa
         for (int lines_i = 0; lines_i < map.size(); lines_i++)
@@ -145,9 +196,20 @@ void SnakeGame::render()
             //Lendo colunas do mapa
             for (int cols_i = 0; cols_i < map[lines_i].size(); cols_i++) {
                 el = map[lines_i][cols_i];
-                //Caso o elemento do mapa seja a posição inicial da cobra, é pra printar o espaço vazio
+                //Caso o elemento do mapa seja a posição inicial da cobra, é pra printar o espaço vazio ou a cobra na posição inicial
                 if (el == '*') {
-                    cout << " ";
+                    if (lines_i == snake_pos.first && cols_i == snake_pos.second) {
+                        cout << snake.get_snake_char();
+                        continue;
+                    } else {
+                        cout << " ";
+                        continue;
+                    }
+                }
+
+                //Caso seja a posição da cobra, é para printa-la
+                if (lines_i == snake_pos.first && cols_i == snake_pos.second) {
+                    cout << snake.get_snake_char();
                     continue;
                 }
 
@@ -165,13 +227,17 @@ void SnakeGame::render()
         }
         break;
     case WAITING_USER:
+        //Caso não haja solução, é para mostrar um aviso relativo a isso e depois perguntar se deseja seguir o jogo
+        if (!has_solution) {
+            cout << "Não existe solução para chegar na fruta" << endl;
+        }
+        
         cout << "Você quer continuar com o jogo? (s/n)" << endl;
         break;
     case GAME_OVER:
         cout << "O jogo terminou!" << endl;
         break;
     }
-    frameCount++;
 }
 
 void SnakeGame::game_over()
@@ -185,6 +251,6 @@ void SnakeGame::loop()
         process_actions();
         update();
         render();
-        wait(1000); // espera 1 segundo entre cada frame
+        wait(500); // espera 1 segundo entre cada frame
     }
 }
