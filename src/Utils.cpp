@@ -45,10 +45,16 @@ bool solveMap(vector<vector<char>> map, pair<int, int> snake_pos, SnakeDirection
         }
 
         //Checa se a direção da cobra possibilita o movimento para o LESTE
+<<<<<<< HEAD
         if (snake_dir == EAST || snake_dir == NORTH || snake_dir == SOUTH)
         {
             snake_pos_aux.first = snake_pos.first;       //Mantém o valor de Y da cobra
             snake_pos_aux.second = snake_pos.second + 1; //Adiciona 1 ao X da cobra
+=======
+        if (snake_dir == EAST || snake_dir == NORTH || snake_dir == SOUTH) {
+            snake_pos_aux.first = snake_pos.first;          //Mantém o valor de Y da cobra
+            snake_pos_aux.second = snake_pos.second + 1;    //Adiciona 1 ao X da cobra
+>>>>>>> 6ef6296f518067d386a7bac382edca75b8f922c1
             if (solveMap(map, snake_pos_aux, EAST, sol, real_solution_vec, fruit) == true)
                 return true;
         }
